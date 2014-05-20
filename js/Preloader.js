@@ -32,11 +32,14 @@ BasicGame.Preloader.prototype = {
         this.game.load.image('ground', 'assets/ground.png');
         this.game.load.image('punch', 'assets/punch.png');
         this.game.load.image('lolly1', 'assets/lolly1.png');
+        this.game.load.spritesheet('deadlolly1', 'assets/deadlolly1.png', 50, 50);
+        this.game.load.spritesheet('deadlolly2', 'assets/deadlolly2.png', 50, 50);
+        this.game.load.spritesheet('deadlolly3', 'assets/deadlolly3.png', 50, 50);
         this.game.load.image('lolly2', 'assets/lolly2.png');
         this.game.load.image('lolly3', 'assets/lolly3.png');
         this.game.load.image('cloud', 'assets/cloud_3.png');
         this.game.load.spritesheet('soundicons', 'assets/soundicons.png', 48, 35); // x, y of sprite images
-        this.game.load.audio('backGroundMusic', 'assets/sounds/AmE7Backing.mp3');
+        this.game.load.audio('backGroundMusic', 'assets/sounds/SonicBlast.mp3');
         this.game.load.audio('punch1', 'assets/sounds/punch1.wav');
         this.game.load.audio('punch2', 'assets/sounds/punch2.wav');
         this.game.load.audio('punch3', 'assets/sounds/punch3.mp3');

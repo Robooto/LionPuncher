@@ -26,15 +26,15 @@ BasicGame.Game = function (game) {
     this.score = 0; // starting score
     this.highScore = 0; // high score
     this.lolliesAlive = 3; // starting amount of lollies to protect
-    this.spawnTimer = 1000;  // 1 second
+    this.spawnTimer = 1000; // 1 second
 
 };
 
 BasicGame.Game.prototype = {
 
     create: function () {
-        
-                // create cloud group
+
+        // create cloud group
         this.clouds = this.game.add.group();
         this.game.physics.enable(this.clouds, Phaser.Physics.ARCADE);
         this.clouds.enableBody = true;
@@ -44,16 +44,16 @@ BasicGame.Game.prototype = {
 
         // adding background music
         this.music = this.add.audio('backGroundMusic');
-        this.music.play();
+        this.music.play('', 0, 0.3, true);
 
         // punching sounds
         this.punch1_s = this.add.audio('punch1');
         this.punch2_s = this.add.audio('punch2');
         this.punch3_s = this.add.audio('punch3');
         this.misspunch_s = this.add.audio('punchmiss');
-        
+
         // adding music switch
-        this.soundSwitch = this.game.add.button( 725, 20, 'soundicons', this.switchSound, this);
+        this.soundSwitch = this.game.add.button(725, 20, 'soundicons', this.switchSound, this);
 
         // spawn clouds every 3 seconds
         this.game.time.events.loop(3000, this.createClouds, this);
@@ -77,51 +77,55 @@ BasicGame.Game.prototype = {
         this.game.physics.enable(this.lollyGroup, Phaser.Physics.ARCADE);
         this.lollyGroup.enableBody = true;
 
-
-
         // create our 3 lollies
         for (var i = 1; i < 4; i++) {
-            this.lolly = this.lollyGroup.create(340 + (40 * i), this.game.height - 18, 'lolly' + i);
+            this.lolly = this.lollyGroup.create(330 + (40 * i), this.game.height - 18, 'lolly' + i);
             this.lolly.name = 'lolly' + i;
             this.lolly.anchor.setTo(0.5, 1); // lollies rotate from base
 
-            // adding rotation to lollies 
+            // bobbing lollies to the beat 
             this.game.add.tween(this.lolly).to({
-                angle: 9
-            }, 600, Phaser.Easing.Linear.None).to({
-                angle: -9
-            }, 600, Phaser.Easing.Linear.None).loop().start();
+                angle: 12
+            }, 390, Phaser.Easing.Linear.None).to({
+                angle: -12
+            }, 390, Phaser.Easing.Linear.None).loop().start();
         }
 
-        //create some lions
+        //create lion ground and create lions
         this.lionGroup = this.game.add.group();
         this.game.physics.enable(this.lionGroup, Phaser.Physics.ARCADE);
         this.lionGroup.enableBody = true;
         this.lionGroup.createMultiple(this.LIONS, 'lion', 0); // number, key, (optional frame), (optional exists)
+        this.lionGroup.setAll('outOfBoundsKill', true);
+        this.lionGroup.setAll('checkWorldBounds', true); // remember checkWoldBounds needs to be active for outofboundskill to work
+
         // creating a timer
         this.lionTimer = 0;
+        
+      
 
-        // Add in a punch!
+        // Add fist
         this.punch = this.game.add.sprite(this.game.world.width / 2, this.game.world.height / 2 - 100, 'punch');
         this.punch.anchor.setTo(0.5, 0.5);
         this.punch.scale.x = -1; // making the fist display in the correct direction
-        this.game.physics.enable(this.punch, Phaser.Physics.ARCADE); // this is the way to enable physics DON't do the other way you were doing it
+        this.game.physics.enable(this.punch, Phaser.Physics.ARCADE); // this is the way to enable physics 
         this.punch.enableBody = true; // 
 
     },
 
     update: function () {
+        
+        // spawn lions starting at 1 per second
+       if ( this.game.time.now > this.lionTimer) {
+           this.lionTimer = this.game.time.now + this.spawnTimer
+           this.createNewLion();
+       }
+        
 
-        // Spawn some lions
-        this.lionTimer -= this.game.time.elapsed;
-        if (this.lionTimer <= 0) {
-            this.lionTimer = this.game.rnd.integerInRange(150, this.spawnTimer); // random  between .15 and 1 sec
-            this.createNewLion();
-        }
-
+        // delay pointer event by 20ms
         if (this.game.input.activePointer.justPressed(20)) {
 
-            this.missedLion = true;
+            this.missedLion = true;  // missed punch flag
             // punching tween
             this.game.add.tween(this.punch).to({
                 x: '-25'
@@ -157,8 +161,9 @@ BasicGame.Game.prototype = {
                     this.punchsound = this.game.rnd.pick([this.punch1_s, this.punch2_s, this.punch3_s]);
                     this.punchsound.play(); // punch sound
 
-                    this.score += 10; // update the score when each lion is hit
-                    this.scoreText.text = 'Score: ' + this.score;
+                    // add 10 to score
+                    this.updateScore(10);
+
 
                 }
 
@@ -178,14 +183,28 @@ BasicGame.Game.prototype = {
         this.punch.y = this.game.input.activePointer.y;
 
         this.game.physics.arcade.collide(this.lionGroup, this.lollyGroup, this.hitLolly, null, this); // checking for collision with our lions and the lollys.  If lollys do overlap then call hitLolly
+
+
+    },
+
+    // add score and adjust the spawn timer
+    updateScore: function (addScore) {
+        this.score += addScore; // update the score when each lion is hit
+        this.scoreText.text = 'Score: ' + this.score;
         
-        // spawn lions faster after 400 points
-        if ( this.score > 400 ) {
-            this.spawnTimer = 750;
+        // lions spawn faster as score increases
+        if(this.score === 70) {
+            this.spawnTimer = 700;
+        } else if (this.score === 150) {
+            this.spawnTimer = 600;
+        } else if (this.score === 300) {
+            this.spawnTimer = 500;
+        } else if (this.score === 500) {
+            this.spawnTimer = 400;
+        } else if (this.score === 700) {
+            this.spawnTimer = 100;
         }
-        else if ( this.score > 600 ) {
-            this.spawnTimer = 550;
-        }
+
 
     },
 
@@ -216,8 +235,6 @@ BasicGame.Game.prototype = {
             }
             lion.rotation = 0; // Reset rotation
             lion.anchor.setTo(0.5, 0.5); // Center texture
-            lion.outOfBoundsKill = true; // kills when they leave the screen if we are checking that
-            lion.checkWorldBounds = true; // checking bounds so we can kill
         }
 
     },
@@ -248,6 +265,12 @@ BasicGame.Game.prototype = {
         console.log(lolly.name);
         lolly.kill();
         lion.kill();
+        this.createDeadLolly(0, lolly);
+        this.createDeadLolly(1, lolly);
+        this.createDeadLolly(2, lolly);
+        this.createDeadLolly(3, lolly);
+        
+        
         this.lolliesAlive--;
 
         // game ends when lollies are gone
@@ -256,16 +279,37 @@ BasicGame.Game.prototype = {
         }
     },
     
+    // create lolly dead pieces
+    createDeadLolly: function (frame, lolly) {
+        
+        // use the correct dead lolly image
+        if(lolly.name === 'lolly1') {
+            this.deadLolly = 'deadlolly1';
+        } else if (lolly.name === 'lolly2') {
+            this.deadLolly = 'deadlolly2';
+        } else {
+            this.deadLolly = 'deadlolly3';
+        }
+      lollypart = this.game.add.sprite(lolly.x, lolly.y, this.deadLolly, frame);
+        this.game.physics.enable(lollypart, Phaser.Physics.ARCADE);
+        lollypart.angle = this.game.rnd.integerInRange(0, 360);
+        lollypart.body.velocity.x = this.game.rnd.integerInRange(-120, 120);
+        lollypart.body.velocity.y = this.game.rnd.integerInRange(-700, -800);
+        lollypart.body.acceleration.y = 3000;
+        this.game.add.tween(lollypart).to({alpha: 0}, 800, Phaser.Easing.Exponential.In, true).onComplete.add(function() { this.kill(); }, lollypart);
+        
+        
+    },
+
     // turning music on or off
     switchSound: function () {
-       if (this.soundSwitch.frame == 0) {
+        if (this.soundSwitch.frame == 0) {
             this.soundSwitch.frame = 1;
             this.music.pause();
-        }
-        else {
+        } else {
             this.soundSwitch.frame = 0;
             this.music.resume();
-        } 
+        }
     },
 
     quitGame: function (pointer) {
