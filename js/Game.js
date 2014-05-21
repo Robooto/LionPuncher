@@ -27,12 +27,17 @@ BasicGame.Game = function (game) {
     this.highScore = 0; // high score
     this.lolliesAlive = 3; // starting amount of lollies to protect
     this.spawnTimer = 1000; // 1 second
+    this.punchesThrown = 0;
+    this.lolliesLivedFor = 0;
 
 };
 
 BasicGame.Game.prototype = {
 
     create: function () {
+
+        // start game flag
+        this.startGame = false;
 
         // create cloud group
         this.clouds = this.game.add.group();
@@ -101,8 +106,11 @@ BasicGame.Game.prototype = {
 
         // creating a timer
         this.lionTimer = 0;
-        
-      
+
+        // create intropanel
+        this.createPanel();
+
+
 
         // Add fist
         this.punch = this.game.add.sprite(this.game.world.width / 2, this.game.world.height / 2 - 100, 'punch');
@@ -114,18 +122,22 @@ BasicGame.Game.prototype = {
     },
 
     update: function () {
-        
-        // spawn lions starting at 1 per second
-       if ( this.game.time.now > this.lionTimer) {
-           this.lionTimer = this.game.time.now + this.spawnTimer
-           this.createNewLion();
-       }
-        
+
+        // Start spawning lions when play is pressed
+
+        if (this.startGame) {
+            // spawn lions starting at 1 per second
+            if (this.game.time.now > this.lionTimer) {
+                this.lionTimer = this.game.time.now + this.spawnTimer
+                this.createNewLion();
+            }
+        }
+
 
         // delay pointer event by 20ms
         if (this.game.input.activePointer.justPressed(20)) {
 
-            this.missedLion = true;  // missed punch flag
+            this.missedLion = true; // missed punch flag
             // punching tween
             this.game.add.tween(this.punch).to({
                 x: '-25'
@@ -164,6 +176,9 @@ BasicGame.Game.prototype = {
                     // add 10 to score
                     this.updateScore(10);
 
+                    //add 1 to punches thrown
+                    this.punchesThrown++;
+
 
                 }
 
@@ -186,14 +201,54 @@ BasicGame.Game.prototype = {
 
 
     },
+    createPanel: function () {
+        // add intropanel
+        this.intropanel = this.game.add.group();
+        this.intropanel.create(200, 15, 'panel');
+        this.startGameButton = this.game.add.button(310, 145, 'playbutton', this.playGame, this, 1, 0, 2); // x, y, key, action, notsure, over,out, down frames
+        this.panelTitle = this.game.add.text(310, 20, 'Lion Puncher', {
+            font: '32px Arial',
+            fill: '#ffffff'
+        });
+        this.panelInfo1 = this.game.add.text(330, 70, 'Punch Lions!', {
+            font: '24px Arial',
+            fill: '#555555'
+        });
+        this.panelInfo2 = this.game.add.text(295, 105, 'Keep the Lollies Safe!', {
+            font: '24px Arial',
+            fill: '#555555'
+        });
+        this.intropanel.add(this.startGameButton);
+        this.intropanel.add(this.panelTitle);
+        this.intropanel.add(this.panelInfo1);
+        this.intropanel.add(this.panelInfo2);
+
+        if (this.gameOver) {
+            this.panelTitle.text = 'Game Over';
+            this.panelInfo1.x = 250; // moved info text over since it is longer now
+            
+            // using time method to calculate time since game started till game over
+            this.panelInfo1.text = 'Lollies survived for: ' + this.game.math.floor(this.game.time.elapsedSecondsSince(this.lolliesLivedFor)) + ' seconds';
+            this.panelInfo2.text = 'Lions Punched: ' + this.punchesThrown;
+        }
+
+    },
+
+    playGame: function () {
+        this.intropanel.destroy();
+        this.startGame = true;
+        // reset punch counter
+        this.punchesThrown = 0;
+        this.lolliesLivedFor = this.game.time.now;
+    },
 
     // add score and adjust the spawn timer
     updateScore: function (addScore) {
         this.score += addScore; // update the score when each lion is hit
         this.scoreText.text = 'Score: ' + this.score;
-        
+
         // lions spawn faster as score increases
-        if(this.score === 70) {
+        if (this.score === 70) {
             this.spawnTimer = 700;
         } else if (this.score === 150) {
             this.spawnTimer = 600;
@@ -269,36 +324,40 @@ BasicGame.Game.prototype = {
         this.createDeadLolly(1, lolly);
         this.createDeadLolly(2, lolly);
         this.createDeadLolly(3, lolly);
-        
-        
+
+
         this.lolliesAlive--;
 
         // game ends when lollies are gone
         if (this.lolliesAlive === 0) {
-            //        this.quitGame();
+            this.quitGame();
         }
     },
-    
+
     // create lolly dead pieces
     createDeadLolly: function (frame, lolly) {
-        
+
         // use the correct dead lolly image
-        if(lolly.name === 'lolly1') {
+        if (lolly.name === 'lolly1') {
             this.deadLolly = 'deadlolly1';
         } else if (lolly.name === 'lolly2') {
             this.deadLolly = 'deadlolly2';
         } else {
             this.deadLolly = 'deadlolly3';
         }
-      lollypart = this.game.add.sprite(lolly.x, lolly.y, this.deadLolly, frame);
+        lollypart = this.game.add.sprite(lolly.x, lolly.y, this.deadLolly, frame);
         this.game.physics.enable(lollypart, Phaser.Physics.ARCADE);
         lollypart.angle = this.game.rnd.integerInRange(0, 360);
         lollypart.body.velocity.x = this.game.rnd.integerInRange(-120, 120);
         lollypart.body.velocity.y = this.game.rnd.integerInRange(-700, -800);
         lollypart.body.acceleration.y = 3000;
-        this.game.add.tween(lollypart).to({alpha: 0}, 800, Phaser.Easing.Exponential.In, true).onComplete.add(function() { this.kill(); }, lollypart);
-        
-        
+        this.game.add.tween(lollypart).to({
+            alpha: 0
+        }, 800, Phaser.Easing.Exponential.In, true).onComplete.add(function () {
+            this.kill();
+        }, lollypart);
+
+
     },
 
     // turning music on or off
@@ -325,7 +384,9 @@ BasicGame.Game.prototype = {
         this.score = 0;
         this.lolliesAlive = 3;
         this.spawnTimer = 1000;
+        this.gameOver = true;
         this.state.start('Game');
+        this.music.stop();
 
     },
 

@@ -29,6 +29,8 @@ BasicGame.Preloader.prototype = {
         */
         //	+ lots of other required assets here
         this.game.load.image('lion', 'assets/lion.png'); // name , location
+        this.game.load.image('panel', 'assets/intropanel.png');
+        this.game.load.spritesheet('playbutton', 'assets/playbutton.png', 190, 49);
         this.game.load.image('ground', 'assets/ground.png');
         this.game.load.image('punch', 'assets/punch.png');
         this.game.load.image('lolly1', 'assets/lolly1.png');
