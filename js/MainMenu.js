@@ -1,4 +1,4 @@
-
+// not using menu
 BasicGame.MainMenu = function (game) {
 
 	this.music = null;

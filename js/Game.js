@@ -1,27 +1,5 @@
 BasicGame.Game = function (game) {
 
-    //	When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
-
-    this.game; //	a reference to the currently running game
-    this.add; //	used to add sprites, text, groups, etc
-    this.camera; //	a reference to the game camera
-    this.cache; //	the game cache
-    this.input; //	the global input manager (you can access this.input.keyboard, this.input.mouse, as well from it)
-    this.load; //	for preloading assets
-    this.math; //	lots of useful common math operations
-    this.sound; //	the sound manager - add a sound, play one, set-up markers, etc
-    this.stage; //	the game stage
-    this.time; //	the clock
-    this.tweens; //  the tween manager
-    this.state; //	the state manager
-    this.world; //	the game world
-    this.particles; //	the particle manager
-    this.physics; //	the physics manager
-    this.rnd; //	the repeatable random number generator
-
-    //	You can use any of these from any function within this State.
-    //	But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
-
     this.LIONS = 15; // amount of lions to loop
     this.score = 0; // starting score
     this.highScore = 0; // high score
@@ -99,7 +77,7 @@ BasicGame.Game.prototype = {
                 angle: -12
             }, 390, Phaser.Easing.Linear.None).loop().start();
         }
-        
+
         // lolly death sounds
         this.lollydeath1_s = this.add.audio('lollydeath1');
         this.lollydeath2_s = this.add.audio('lollydeath2');
@@ -118,21 +96,18 @@ BasicGame.Game.prototype = {
         // create intropanel
         this.createPanel();
 
-
-
         // Add fist
         this.punch = this.game.add.sprite(this.game.world.width / 2, this.game.world.height / 2 - 100, 'punch');
         this.punch.anchor.setTo(.5, .5);
         this.punch.scale.x = -1; // making the fist display in the correct direction
         this.game.physics.enable(this.punch, Phaser.Physics.ARCADE); // this is the way to enable physics 
-        this.punch.body.allowRotation = false;  // let Physics do the rotation
+        this.punch.body.allowRotation = false; // let Physics do the rotation
 
     },
 
     update: function () {
 
         // Start spawning lions when play is pressed
-
         if (this.startGame) {
             // spawn lions starting at 1 per second
             if (this.game.time.now > this.lionTimer) {
@@ -146,6 +121,8 @@ BasicGame.Game.prototype = {
         if (this.game.input.activePointer.justPressed(20)) {
 
             this.missedLion = true; // missed punch flag
+            
+            // add tween to simulate punch feedback
             this.game.add.tween(this.punch.scale).to({
                 x: -.4,
                 y: 1.4
@@ -176,11 +153,9 @@ BasicGame.Game.prototype = {
                     // select a random punch sound to play
                     this.game.rnd.pick([this.punch1_s, this.punch2_s, this.punch3_s]).play();
 
-                    // add 10 to score
-                    this.updateScore(10);
+                    this.updateScore(10);  // add 10 to score
 
-                    //add 1 to punches thrown
-                    this.punchesThrown++;
+                    this.punchesThrown++; //add 1 to punches thrown
 
 
                 }
@@ -224,8 +199,8 @@ BasicGame.Game.prototype = {
 
         if (this.gameOver) {
             this.panelTitle.text = 'Game Over';
-            this.panelInfo1.x = 250; // moved info text over since it is longer now
-            
+            this.panelInfo1.x = 230; // moved info text over since it is longer now
+
             // using time method to calculate time since game started till game over
             this.panelInfo1.text = 'Lollies survived for: ' + this.game.math.floor(this.game.time.elapsedSecondsSince(this.lolliesLivedFor)) + ' seconds';
             this.panelInfo2.text = 'Lions Punched: ' + this.punchesThrown;
@@ -234,11 +209,10 @@ BasicGame.Game.prototype = {
     },
 
     playGame: function () {
-        this.intropanel.destroy();
-        this.startGame = true;  // start Game
-        // reset punch counter
-        this.punchesThrown = 0;
-        this.lolliesLivedFor = this.game.time.now;  // reset lolly life timer
+        this.intropanel.destroy();  // remove panel
+        this.startGame = true; // start Game
+        this.punchesThrown = 0;  // reset punch counter
+        this.lolliesLivedFor = this.game.time.now; // reset lolly life timer
     },
 
     // add score and adjust the spawn timer
@@ -246,7 +220,7 @@ BasicGame.Game.prototype = {
         this.score += addScore; // update the score when each lion is hit
         this.scoreText.text = 'Score: ' + this.score;
 
-        // lions spawn faster as score increases
+        // lions spawn faster as score increases 
         if (this.score === 70) {
             this.spawnTimer = 700;
         } else if (this.score === 150) {
@@ -260,8 +234,9 @@ BasicGame.Game.prototype = {
         } else if (this.score === 900) {
             this.spawnTimer = 100;
         }
-        
-         if (this.score > this.highScore) {
+
+        // add tween to score when it is higher than highscore
+        if (this.score > this.highScore) {
             this.game.add.tween(this.scoreText.scale).to({
                 x: 1,
                 y: 1
@@ -278,9 +253,9 @@ BasicGame.Game.prototype = {
     createNewLion: function () {
         var lion = this.lionGroup.getFirstDead(); // Recycle a dead lion
 
-        var leftOrRight = this.game.rnd.pick([900, -100]); // switching lions on the left or right side of screen
+        // switching lions on the left or right side of screen
         if (lion) {
-            lion.reset(leftOrRight, this.game.height - 68); // Position on ground
+            lion.reset(this.game.rnd.pick([900, -100]), this.game.height - 68); // Position on ground
             lion.revive(); // Set "alive"
             lion.body.checkCollision = {
                 up: true,
@@ -292,7 +267,7 @@ BasicGame.Game.prototype = {
             lion.body.acceleration.setTo(0, 0); // Stop accelerating
 
             // If lion spawns on left move left if right move right
-            if (leftOrRight === 900) {
+            if (lion.x > 400) {
                 lion.body.velocity.x = this.game.rnd.integerInRange(-100, -500); // Move left
                 lion.scale.x = 1;
             } else {
@@ -330,8 +305,8 @@ BasicGame.Game.prototype = {
     hitLolly: function (lion, lolly) {
         lolly.kill();
         lion.kill();
-        
-         // lolly death sound
+
+        // lolly death sound
         this.game.rnd.pick([this.lollydeath1_s, this.lollydeath2_s]).play();
         this.createDeadLolly(0, lolly);
         this.createDeadLolly(1, lolly);
@@ -375,7 +350,7 @@ BasicGame.Game.prototype = {
 
     // turning music on or off
     switchSound: function () {
-        if (this.soundSwitch.frame == 0) {
+        if (this.soundSwitch.frame === 0) {
             this.soundSwitch.frame = 1;
             this.music.pause();
         } else {
@@ -390,10 +365,7 @@ BasicGame.Game.prototype = {
             this.highScore = this.score
         }
 
-        //	Here you should destroy anything you no longer need.
-        //	Stop music, delete sprites, purge caches, free resources, all that good stuff.
-
-        //	Then let's go back to the main menu.
+        //	Reset score, stop music, and start the game over
         this.score = 0;
         this.lolliesAlive = 3;
         this.spawnTimer = 1000;
