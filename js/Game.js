@@ -45,7 +45,7 @@ BasicGame.Game.prototype = {
         this.clouds.enableBody = true;
         this.clouds.createMultiple(2, 'cloud', 0);
         this.clouds.setAll('outOfBoundsKill', true);
-        this.clouds.setAll('checkWorldBounds', true); // remember checkWoldBounds needs to be active for out of bounds world kill to work
+        this.clouds.setAll('checkWorldBounds', true); // remember checkWorldBounds needs to be active for out of bounds world kill to work
 
         // adding background music
         this.music = this.add.audio('backGroundMusic');
@@ -65,10 +65,14 @@ BasicGame.Game.prototype = {
 
         // adding in scores
         this.scoreText = this.game.add.text(16, 16, 'Score: 0', {
+            stroke: '#000000',
+            strokeThickness: 3,
             font: '32px Arial',
             fill: '#ffffff'
         }); // x, y, string of text, style
         this.highScoreText = this.game.add.text(16, 50, 'High Score: ' + this.highScore, {
+            stroke: '#000000',
+            strokeThickness: 3,
             font: '32px Arial',
             fill: '#ffffff'
         }); // high score
@@ -95,6 +99,10 @@ BasicGame.Game.prototype = {
                 angle: -12
             }, 390, Phaser.Easing.Linear.None).loop().start();
         }
+        
+        // lolly death sounds
+        this.lollydeath1_s = this.add.audio('lollydeath1');
+        this.lollydeath2_s = this.add.audio('lollydeath2');
 
         //create lion ground and create lions
         this.lionGroup = this.game.add.group();
@@ -114,10 +122,10 @@ BasicGame.Game.prototype = {
 
         // Add fist
         this.punch = this.game.add.sprite(this.game.world.width / 2, this.game.world.height / 2 - 100, 'punch');
-        this.punch.anchor.setTo(0.5, 0.5);
+        this.punch.anchor.setTo(.5, .5);
         this.punch.scale.x = -1; // making the fist display in the correct direction
         this.game.physics.enable(this.punch, Phaser.Physics.ARCADE); // this is the way to enable physics 
-        this.punch.enableBody = true; // 
+        this.punch.body.allowRotation = false;  // let Physics do the rotation
 
     },
 
@@ -138,24 +146,20 @@ BasicGame.Game.prototype = {
         if (this.game.input.activePointer.justPressed(20)) {
 
             this.missedLion = true; // missed punch flag
-            // punching tween
-            this.game.add.tween(this.punch).to({
-                x: '-25'
-            }, 100, Phaser.Easing.Linear.None).start();
             this.game.add.tween(this.punch.scale).to({
-                x: -.8,
-                y: 1.2
+                x: -.4,
+                y: 1.4
             }, 100, Phaser.Easing.Linear.None).to({
                 x: -1,
                 y: 1
             }, 100, Phaser.Easing.Linear.None).start();
 
-            // Kill lions within 64 pixels of the punch
+            // Kill lions within 90 pixels of the punch
             this.lionGroup.forEachAlive(function (lion) { // grab alive lions
-                // if the lioin is within 64 pixels destroy it!
+                // if the lioin is within 90 pixels destroy it!
                 if (this.game.math.distance(
-                    this.game.input.activePointer.x, this.game.input.activePointer.y,
-                    lion.x, lion.y) < 64) {
+                    this.punch.x, this.punch.y,
+                    lion.x, lion.y) < 90) {
                     lion.body.checkCollision = {
                         up: false,
                         down: false,
@@ -170,8 +174,7 @@ BasicGame.Game.prototype = {
                     this.missedLion = false; // toggle missed flag
 
                     // select a random punch sound to play
-                    this.punchsound = this.game.rnd.pick([this.punch1_s, this.punch2_s, this.punch3_s]);
-                    this.punchsound.play(); // punch sound
+                    this.game.rnd.pick([this.punch1_s, this.punch2_s, this.punch3_s]).play();
 
                     // add 10 to score
                     this.updateScore(10);
@@ -190,12 +193,8 @@ BasicGame.Game.prototype = {
             }
         }
 
-        // angelTopointer calclates the angle between two points
-        this.punch.rotation = this.game.physics.arcade.angleToPointer(this.punch);
-
-        // fist will be attached to the pointer
-        this.punch.x = this.game.input.activePointer.x - 1;
-        this.punch.y = this.game.input.activePointer.y;
+        // move to Pointer handles the rotation and the acceleration to cursor
+        this.punch.rotation = this.game.physics.arcade.moveToPointer(this.punch, 200, this.game.input.activePointer, 80);
 
         this.game.physics.arcade.collide(this.lionGroup, this.lollyGroup, this.hitLolly, null, this); // checking for collision with our lions and the lollys.  If lollys do overlap then call hitLolly
 
@@ -236,10 +235,10 @@ BasicGame.Game.prototype = {
 
     playGame: function () {
         this.intropanel.destroy();
-        this.startGame = true;
+        this.startGame = true;  // start Game
         // reset punch counter
         this.punchesThrown = 0;
-        this.lolliesLivedFor = this.game.time.now;
+        this.lolliesLivedFor = this.game.time.now;  // reset lolly life timer
     },
 
     // add score and adjust the spawn timer
@@ -253,11 +252,23 @@ BasicGame.Game.prototype = {
         } else if (this.score === 150) {
             this.spawnTimer = 600;
         } else if (this.score === 300) {
-            this.spawnTimer = 500;
+            this.spawnTimer = 550;
         } else if (this.score === 500) {
-            this.spawnTimer = 400;
-        } else if (this.score === 700) {
+            this.spawnTimer = 500;
+        } else if (this.score === 600) {
+            this.spawnTimer = 450;
+        } else if (this.score === 900) {
             this.spawnTimer = 100;
+        }
+        
+         if (this.score > this.highScore) {
+            this.game.add.tween(this.scoreText.scale).to({
+                x: 1,
+                y: 1
+            }, 100, Phaser.Easing.Linear.None).to({
+                x: 1.1,
+                y: 1.1
+            }, 500, Phaser.Easing.Linear.None).start();
         }
 
 
@@ -317,9 +328,11 @@ BasicGame.Game.prototype = {
 
     // interaction between lion and lolly
     hitLolly: function (lion, lolly) {
-        console.log(lolly.name);
         lolly.kill();
         lion.kill();
+        
+         // lolly death sound
+        this.game.rnd.pick([this.lollydeath1_s, this.lollydeath2_s]).play();
         this.createDeadLolly(0, lolly);
         this.createDeadLolly(1, lolly);
         this.createDeadLolly(2, lolly);

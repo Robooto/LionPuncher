@@ -12,7 +12,8 @@ BasicGame.Preloader.prototype = {
     preload: function () {
         // Set stage background color
         this.game.stage.backgroundColor = '#84CBEC';
-        this.preloadBar = this.add.sprite(350, 150, 'preloaderBar');
+        this.gameBackground = this.add.sprite(150, 90, 'preload');
+        this.preloadBar = this.add.sprite(150, 90, 'loadingbar');
 
         //	This sets the preloadBar sprite as a loader sprite.
         //	What that does is automatically crop the sprite from 0 to full-width
@@ -40,12 +41,14 @@ BasicGame.Preloader.prototype = {
         this.game.load.image('lolly2', 'assets/lolly2.png');
         this.game.load.image('lolly3', 'assets/lolly3.png');
         this.game.load.image('cloud', 'assets/cloud_3.png');
-        this.game.load.spritesheet('soundicons', 'assets/soundicons.png', 48, 35); // x, y of sprite images
+        this.game.load.spritesheet('soundicons', 'assets/soundicons.png', 28, 27); // x, y of sprite images
         this.game.load.audio('backGroundMusic', 'assets/sounds/SonicBlast.mp3');
         this.game.load.audio('punch1', 'assets/sounds/punch1.wav');
         this.game.load.audio('punch2', 'assets/sounds/punch2.wav');
         this.game.load.audio('punch3', 'assets/sounds/punch3.mp3');
         this.game.load.audio('punchmiss', 'assets/sounds/punchmiss.wav');
+        this.game.load.audio('lollydeath1', 'assets/sounds/lollyscream1.wav');
+        this.game.load.audio('lollydeath2', 'assets/sounds/lollyscream2.wav');
         
     },
 
