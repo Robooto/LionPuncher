@@ -16,7 +16,7 @@ BasicGame.Boot.prototype = {
     },
 
     create: function () {
-
+this.game.stage.backgroundColor = '#84CBEC';
         //  Unless you specifically know your game needs to support multi-touch I would recommend setting this to 1
         this.input.maxPointers = 1;
 
@@ -35,8 +35,8 @@ BasicGame.Boot.prototype = {
             this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
             this.scale.minWidth = 480;
             this.scale.minHeight = 260;
-            this.scale.maxWidth = 800;
-            this.scale.maxHeight = 300;
+            this.scale.maxWidth = 1024;
+            this.scale.maxHeight = 768;
             this.scale.forceLandscape = true;
             this.scale.pageAlignHorizontally = true;
             this.scale.setScreenSize(true);

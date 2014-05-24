@@ -35,21 +35,24 @@ BasicGame.Game.prototype = {
         this.punch3_s = this.add.audio('punch3');
         this.misspunch_s = this.add.audio('punchmiss');
 
+        // lion punch on click or tap
+        this.game.input.onDown.add(this.punchLion, this);
+
         // adding music switch
-        this.soundSwitch = this.game.add.button(725, 20, 'soundicons', this.switchSound, this);
+        this.soundSwitch = this.game.add.button(860, 20, 'soundicons', this.switchSound, this);
 
         // spawn clouds every 3 seconds
         this.game.time.events.loop(3000, this.createClouds, this);
 
         // adding in scores
         this.scoreText = this.game.add.text(16, 16, 'Score: 0', {
-            stroke: '#000000',
+            stroke: '#71c5cf',
             strokeThickness: 3,
             font: '32px Arial',
             fill: '#ffffff'
         }); // x, y, string of text, style
         this.highScoreText = this.game.add.text(16, 50, 'High Score: ' + this.highScore, {
-            stroke: '#000000',
+            stroke: '#71c5cf',
             strokeThickness: 3,
             font: '32px Arial',
             fill: '#ffffff'
@@ -57,7 +60,7 @@ BasicGame.Game.prototype = {
 
         // create the ground
         this.ground = this.game.add.sprite(0, this.game.world.height - 22, 'ground');
-        this.ground.scale.setTo(2, 1); // scale ground
+        this.ground.scale.setTo(2.4, 1); // scale ground
 
         // create lolly group
         this.lollyGroup = this.game.add.group();
@@ -66,7 +69,7 @@ BasicGame.Game.prototype = {
 
         // create our 3 lollies
         for (var i = 1; i < 4; i++) {
-            this.lolly = this.lollyGroup.create(330 + (40 * i), this.game.height - 18, 'lolly' + i);
+            this.lolly = this.lollyGroup.create(400 + (40 * i), this.game.height - 18, 'lolly' + i);
             this.lolly.name = 'lolly' + i;
             this.lolly.anchor.setTo(0.5, 1); // lollies rotate from base
 
@@ -116,58 +119,6 @@ BasicGame.Game.prototype = {
             }
         }
 
-
-        // delay pointer event by 20ms
-        if (this.game.input.activePointer.justPressed(20)) {
-
-            this.missedLion = true; // missed punch flag
-            
-            // add tween to simulate punch feedback
-            this.game.add.tween(this.punch.scale).to({
-                x: -.4,
-                y: 1.4
-            }, 100, Phaser.Easing.Linear.None).to({
-                x: -1,
-                y: 1
-            }, 100, Phaser.Easing.Linear.None).start();
-
-            // Kill lions within 90 pixels of the punch
-            this.lionGroup.forEachAlive(function (lion) { // grab alive lions
-                // if the lioin is within 90 pixels destroy it!
-                if (this.game.math.distance(
-                    this.punch.x, this.punch.y,
-                    lion.x, lion.y) < 90) {
-                    lion.body.checkCollision = {
-                        up: false,
-                        down: false,
-                        left: false,
-                        right: false
-                    }; // stop checking for collisions when punched
-                    lion.body.velocity.y = this.game.rnd.integerInRange(-600, -1200);
-                    lion.body.velocity.x = this.game.rnd.integerInRange(-500, 500);
-                    lion.body.acceleration.y = 3000;
-                    lion.angle = 270;
-
-                    this.missedLion = false; // toggle missed flag
-
-                    // select a random punch sound to play
-                    this.game.rnd.pick([this.punch1_s, this.punch2_s, this.punch3_s]).play();
-
-                    this.updateScore(10);  // add 10 to score
-
-                    this.punchesThrown++; //add 1 to punches thrown
-
-
-                }
-
-            }, this);
-
-            // play missed sound when no lion is hit
-            if (this.missedLion) {
-                this.misspunch_s.play();
-            }
-        }
-
         // move to Pointer handles the rotation and the acceleration to cursor
         this.punch.rotation = this.game.physics.arcade.moveToPointer(this.punch, 200, this.game.input.activePointer, 80);
 
@@ -175,22 +126,76 @@ BasicGame.Game.prototype = {
 
 
     },
+    punchLion: function () {
+
+        this.missedLion = true; // missed punch flag
+
+        // add tween to simulate punch feedback
+        this.game.add.tween(this.punch.scale).to({
+            x: -.4,
+            y: 1.4
+        }, 100, Phaser.Easing.Linear.None).to({
+            x: -1,
+            y: 1
+        }, 100, Phaser.Easing.Linear.None).start();
+
+        // Kill lions within 90 pixels of the punch
+        this.lionGroup.forEachAlive(function (lion) { // grab alive lions
+            // if the lioin is within 90 pixels destroy it!
+            if (this.game.math.distance(
+                this.punch.x, this.punch.y,
+                lion.x, lion.y) < 90) {
+                lion.body.checkCollision = {
+                    up: false,
+                    down: false,
+                    left: false,
+                    right: false
+                }; // stop checking for collisions when punched
+                lion.body.velocity.y = this.game.rnd.integerInRange(-600, -1200);
+                lion.body.velocity.x = this.game.rnd.integerInRange(-500, 500);
+                lion.body.acceleration.y = 3000;
+                lion.angle = 270;
+
+                this.missedLion = false; // toggle missed flag
+
+                // select a random punch sound to play
+                this.game.rnd.pick([this.punch1_s, this.punch2_s, this.punch3_s]).play();
+
+                this.updateScore(10); // add 10 to score
+
+                this.punchesThrown++; //add 1 to punches thrown
+
+
+            }
+
+        }, this);
+
+        // play missed sound when no lion is hit
+        if (this.missedLion) {
+            this.misspunch_s.play();
+        }
+    },
+
     createPanel: function () {
         // add intropanel
         this.intropanel = this.game.add.group();
-        this.intropanel.create(200, 15, 'panel');
-        this.startGameButton = this.game.add.button(310, 145, 'playbutton', this.playGame, this, 1, 0, 2); // x, y, key, action, notsure, over,out, down frames
-        this.panelTitle = this.game.add.text(310, 20, 'Lion Puncher', {
+        this.intropanel.create(280, 15, 'panel');
+        this.startGameButton = this.game.add.button(390, 145, 'playbutton', this.playGame, this, 1, 0, 2); // x, y, key, action, notsure, over,out, down frames
+        this.panelTitle = this.game.add.text(390, 20, 'Lion Puncher', {
             font: '32px Arial',
             fill: '#ffffff'
         });
-        this.panelInfo1 = this.game.add.text(330, 70, 'Punch Lions!', {
+        this.panelInfo1 = this.game.add.text(415, 70, 'Punch Lions!', {
             font: '24px Arial',
-            fill: '#555555'
+            fill: '#1EA7E1',
+            stroke: '#ffffff',
+            strokeThickness: 3
         });
-        this.panelInfo2 = this.game.add.text(295, 105, 'Keep the Lollies Safe!', {
+        this.panelInfo2 = this.game.add.text(370, 105, 'Keep the Lollies Safe!', {
             font: '24px Arial',
-            fill: '#555555'
+            fill: '#1EA7E1',
+            stroke: '#ffffff',
+            strokeThickness: 3
         });
         this.intropanel.add(this.startGameButton);
         this.intropanel.add(this.panelTitle);
@@ -199,7 +204,7 @@ BasicGame.Game.prototype = {
 
         if (this.gameOver) {
             this.panelTitle.text = 'Game Over';
-            this.panelInfo1.x = 230; // moved info text over since it is longer now
+            this.panelInfo1.x = 320; // moved info text over since it is longer now
 
             // using time method to calculate time since game started till game over
             this.panelInfo1.text = 'Lollies survived for: ' + this.game.math.floor(this.game.time.elapsedSecondsSince(this.lolliesLivedFor)) + ' seconds';
@@ -209,9 +214,9 @@ BasicGame.Game.prototype = {
     },
 
     playGame: function () {
-        this.intropanel.destroy();  // remove panel
+        this.intropanel.destroy(); // remove panel
         this.startGame = true; // start Game
-        this.punchesThrown = 0;  // reset punch counter
+        this.punchesThrown = 0; // reset punch counter
         this.lolliesLivedFor = this.game.time.now; // reset lolly life timer
     },
 
@@ -231,6 +236,10 @@ BasicGame.Game.prototype = {
             this.spawnTimer = 500;
         } else if (this.score === 600) {
             this.spawnTimer = 450;
+        } else if (this.score === 700) {
+            this.spawnTimer = 300;
+        } else if (this.score === 800) {
+            this.spawnTimer = 275;
         } else if (this.score === 900) {
             this.spawnTimer = 100;
         }
@@ -255,7 +264,7 @@ BasicGame.Game.prototype = {
 
         // switching lions on the left or right side of screen
         if (lion) {
-            lion.reset(this.game.rnd.pick([900, -100]), this.game.height - 68); // Position on ground
+            lion.reset(this.game.rnd.pick([1000, -100]), this.game.height - 68); // Position on ground
             lion.revive(); // Set "alive"
             lion.body.checkCollision = {
                 up: true,
@@ -267,7 +276,7 @@ BasicGame.Game.prototype = {
             lion.body.acceleration.setTo(0, 0); // Stop accelerating
 
             // If lion spawns on left move left if right move right
-            if (lion.x > 400) {
+            if (lion.x > 480) {
                 lion.body.velocity.x = this.game.rnd.integerInRange(-100, -500); // Move left
                 lion.scale.x = 1;
             } else {
@@ -287,11 +296,11 @@ BasicGame.Game.prototype = {
         var cloud = this.clouds.getFirstDead();
 
         if (cloud) {
-            cloud.reset(this.game.rnd.pick([800, 0]), this.game.rnd.integerInRange(5, 60));
+            cloud.reset(this.game.rnd.pick([960, 0]), this.game.rnd.integerInRange(5, 60));
             cloud.revive(); // need to revive the sprite because it is currently dead
 
             // if cloud spawns on the right side of th screen move left else move right
-            if (cloud.x > 400) {
+            if (cloud.x > 480) {
                 cloud.body.velocity.x = this.game.rnd.integerInRange(-20, -60); // Move left
                 cloud.scale.x = 1;
             } else {
