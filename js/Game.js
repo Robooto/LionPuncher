@@ -183,7 +183,9 @@ BasicGame.Game.prototype = {
         this.startGameButton = this.game.add.button(390, 145, 'playbutton', this.playGame, this, 1, 0, 2); // x, y, key, action, notsure, over,out, down frames
         this.panelTitle = this.game.add.text(390, 20, 'Lion Puncher', {
             font: '32px Arial',
-            fill: '#ffffff'
+            fill: '#ffffff',
+            stroke: '#1EA7E1',
+            strokeThickness: 3
         });
         this.panelInfo1 = this.game.add.text(415, 70, 'Punch Lions!', {
             font: '24px Arial',

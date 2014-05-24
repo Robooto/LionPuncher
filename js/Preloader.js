@@ -12,8 +12,9 @@ BasicGame.Preloader.prototype = {
     preload: function () {
         // Set stage background color
         this.game.stage.backgroundColor = '#84CBEC';
-        this.gameBackground = this.add.sprite(220, 90, 'preload');
-        this.preloadBar = this.add.sprite(220, 90, 'loadingbar');
+        this.add.sprite(740, this.game.world.height - 60, 'preload');
+        this.add.sprite(150, 110, 'preloadingbar');
+        this.preloadBar = this.add.sprite(150, 110, 'loadingbar');
 
         //	This sets the preloadBar sprite as a loader sprite.
         //	What that does is automatically crop the sprite from 0 to full-width
