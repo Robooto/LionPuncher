@@ -57,6 +57,10 @@ BasicGame.Preloader.prototype = {
 
         //	Once the load has finished we disable the crop because we're going to sit in the update loop for a short while as the music decodes
         this.preloadBar.cropEnabled = false;
+        
+        // adding background music
+        music = this.add.audio('backGroundMusic');
+        music.play('', 0, 0.3, true);
 
     },
 

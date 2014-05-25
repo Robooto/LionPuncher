@@ -2,6 +2,8 @@ var BasicGame = {
 
     // Add some global vars
 
+    music: null,
+    
 };
 
 

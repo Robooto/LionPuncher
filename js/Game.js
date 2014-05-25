@@ -25,10 +25,6 @@ BasicGame.Game.prototype = {
         this.clouds.setAll('outOfBoundsKill', true);
         this.clouds.setAll('checkWorldBounds', true); // remember checkWorldBounds needs to be active for out of bounds world kill to work
 
-        // adding background music
-        this.music = this.add.audio('backGroundMusic');
-        this.music.play('', 0, 0.3, true);
-
         // punching sounds
         this.punch1_s = this.add.audio('punch1');
         this.punch2_s = this.add.audio('punch2');
@@ -40,6 +36,11 @@ BasicGame.Game.prototype = {
 
         // adding music switch
         this.soundSwitch = this.game.add.button(860, 20, 'soundicons', this.switchSound, this);
+        
+        // if music was turned off button will be off
+        if(!music.isPlaying) {
+            this.soundSwitch.frame = 1
+        } 
 
         // spawn clouds every 3 seconds
         this.game.time.events.loop(3000, this.createClouds, this);
@@ -363,10 +364,10 @@ BasicGame.Game.prototype = {
     switchSound: function () {
         if (this.soundSwitch.frame === 0) {
             this.soundSwitch.frame = 1;
-            this.music.pause();
+            music.pause();  // music is global so it will stay off
         } else {
             this.soundSwitch.frame = 0;
-            this.music.resume();
+            music.resume();
         }
     },
 
@@ -382,7 +383,6 @@ BasicGame.Game.prototype = {
         this.spawnTimer = 1000;
         this.gameOver = true;
         this.state.start('Game');
-        this.music.stop();
 
     },
 
